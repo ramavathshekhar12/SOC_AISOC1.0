@@ -1,0 +1,18 @@
+# Minimal example decoders
+- name: syslog
+  detect: ["sshd", "Failed password for"]
+  fields:
+    message: "@raw"
+
+- name: windows_event
+  detect: ["EventID", "SubjectUserName"]
+  fields:
+    event_id: "EventID"
+    user: "SubjectUserName"
+
+- name: fim
+  detect: ["ai_soc_fim"]
+  fields:
+    event: "event"
+    path: "path"
+    hash: "sha256"

@@ -1,0 +1,28 @@
+# Minimal example rules
+- id: 1001
+  name: "Failed SSH Login"
+  match:
+    decoder: "syslog"
+    contains: "Failed password for"
+  level: 7
+  tags: ["auth", "linux", "ssh", "MITRE:T1110"]
+  actions: []
+
+- id: 2001
+  name: "Windows Account Lockout"
+  match:
+    decoder: "windows_event"
+    event_id: 4740
+  level: 6
+  tags: ["windows", "account", "MITRE:T1110"]
+  actions: []
+
+- id: 3001
+  name: "File Integrity Change"
+  match:
+    decoder: "fim"
+    field_equals:
+      event: "modified"
+  level: 10
+  tags: ["fim", "integrity", "MITRE:T1565"]
+  actions: ["notify"]

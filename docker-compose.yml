@@ -1,0 +1,62 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.11.1
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.1
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+  manager:
+    build: ./services/manager
+    environment:
+      - OPENSEARCH_URL=http://opensearch:9200
+      - AGENT_SHARED_TOKEN=${AGENT_SHARED_TOKEN}
+    ports:
+      - "8000:8000"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+  pt_orchestrator:
+    build: ./services/pt_orchestrator
+    environment:
+      - ALLOWED_CIDRS=${ALLOWED_CIDRS}
+    ports:
+      - "8010:8010"
+
+  ai_anomaly:
+    build: ./services/ai_anomaly
+    ports:
+      - "8020:8020"
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_MANAGER_API=http://localhost:8000
+    depends_on:
+      manager:
+        condition: service_started
